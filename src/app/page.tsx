@@ -14,6 +14,7 @@ export default function Home() {
   const [displayProgress, setDisplayProgress] = useState(0);
   const [remaining, setRemaining] = useState(5);
   const [isPro, setIsPro] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState('');
 
   // Check usage on mount
   useEffect(() => {
@@ -138,6 +139,36 @@ export default function Home() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(content);
     alert('已复制到剪贴板！');
+  };
+
+  const platforms = [
+    { id: 'wordpress', name: 'WordPress', icon: '🔵', url: 'https://wordpress.com/post' },
+    { id: 'medium', name: 'Medium', icon: '⚫', url: 'https://medium.com/new-post' },
+    { id: 'zhihu', name: '知乎', icon: '🟢', url: 'https://www.zhihu.com/publish' },
+    { id: 'juejin', name: '掘金', icon: '🟠', url: 'https://juejin.cn/editor' },
+    { id: 'segmentfault', name: 'SegmentFault', icon: '🔶', url: 'https://segmentfault.com/write' },
+  ];
+
+  const publishToPlatform = (platformId: string) => {
+    const platform = platforms.find(p => p.id === platformId);
+    if (!platform || !content) return;
+
+    // For web platforms, encode content as URL parameters
+    const encodedTitle = encodeURIComponent(topic || 'BlogAI 生成文章');
+    const encodedContent = encodeURIComponent(content);
+    
+    let publishUrl = platform.url;
+    
+    if (platformId === 'wordpress') {
+      publishUrl += `?title=${encodedTitle}&content=${encodedContent}`;
+    } else if (platformId === 'medium') {
+      publishUrl += `?title=${encodedTitle}`;
+    } else if (platformId === 'zhihu') {
+      alert('知乎需要登录后手动复制内容发布');
+      return;
+    }
+
+    window.open(publishUrl, '_blank');
   };
 
   return (
@@ -325,15 +356,36 @@ export default function Home() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">📄 生成结果</h2>
-                {content && (
+              </div>
+              
+              {/* Action Bar */}
+              {content && (
+                <div className="flex flex-wrap gap-2 mb-4">
                   <button
                     onClick={copyToClipboard}
-                    className="text-sm text-indigo-600 hover:text-indigo-800"
+                    className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition"
                   >
                     📋 复制
                   </button>
-                )}
-              </div>
+                  <select
+                    value={selectedPlatform}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        publishToPlatform(e.target.value);
+                        setSelectedPlatform('');
+                      }
+                    }}
+                    className="text-sm bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-200 transition cursor-pointer"
+                  >
+                    <option value="">🚀 发布到...</option>
+                    {platforms.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.icon} {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               <div className="min-h-[400px] p-4 bg-gray-50 rounded-xl border border-gray-100">
                 {loading ? (
