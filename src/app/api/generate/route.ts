@@ -31,22 +31,89 @@ export async function POST(req: Request) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `主题：${topic}` }
         ],
-        temperature: 0.7
+        temperature: 0.7,
+        stream: true
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('MiniMax API error:', errorText);
-      return Response.json({ error: 'API调用失败: ' + errorText }, { status: 500 });
+      return new Response(JSON.stringify({ error: 'API调用失败: ' + errorText }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '生成失败';
+    // Create a streaming response
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = response.body?.getReader();
+        if (!reader) {
+          controller.close();
+          return;
+        }
 
-    return Response.json({ content });
+        let buffer = '';
+        let sentProgress = false;
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += new TextDecoder().decode(value);
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') {
+                  controller.enqueue(encoder.encode('data: {"done": true}\n\n'));
+                  controller.close();
+                  return;
+                }
+
+                try {
+                  const json = JSON.parse(data);
+                  const content = json.choices?.[0]?.delta?.content || '';
+                  if (content) {
+                    // Send progress update (simulated based on content length)
+                    const progress = Math.min(95, 30 + (content.length * 0.5));
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ progress: Math.floor(progress), content })}\n\n`));
+                    sentProgress = true;
+                  }
+                } catch (e) {
+                  // Ignore parse errors for incomplete chunks
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Stream error:', e);
+        } finally {
+          if (!sentProgress) {
+            controller.enqueue(encoder.encode('data: {"progress": 100, "done": true}\n\n'));
+          }
+          controller.close();
+        }
+      }
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+      }
+    });
   } catch (error) {
     console.error('Generate error:', error);
-    return Response.json({ error: '生成失败，请重试' }, { status: 500 });
+    return new Response(JSON.stringify({ error: '生成失败，请重试' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

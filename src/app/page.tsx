@@ -8,18 +8,68 @@ export default function Home() {
   const [language, setLanguage] = useState('zh');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const generate = async () => {
     if (!topic.trim()) return;
     setLoading(true);
+    setProgress(0);
+    setContent('');
+
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, style, language }),
       });
-      const data = await res.json();
-      setContent(data.content || '');
+
+      if (!res.ok) {
+        const data = await res.json();
+        setContent(data.error || '生成失败，请重试');
+        setLoading(false);
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      if (!reader) {
+        setLoading(false);
+        return;
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.progress !== undefined) {
+                setProgress(data.progress);
+              }
+              
+              if (data.content) {
+                setContent(prev => prev + data.content);
+              }
+              
+              if (data.done) {
+                setProgress(100);
+                setLoading(false);
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
     } catch (e) {
       setContent('生成失败，请重试');
     }
@@ -86,7 +136,7 @@ export default function Home() {
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
-                      ��🇼 中文
+                      ��🇨 中文
                     </button>
                     <button
                       onClick={() => setLanguage('en')}
@@ -107,8 +157,24 @@ export default function Home() {
                 disabled={loading || !topic.trim()}
                 className="w-full mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                {loading ? '🤔 AI 写作中...' : '🚀 生成博客文章'}
+                {loading ? `🤔 AI 写作中 ${progress}%` : '🚀 生成博客文章'}
               </button>
+
+              {/* 进度条 */}
+              {loading && (
+                <div className="mt-4">
+                  <div className="flex justify-between text-sm text-gray-500 mb-1">
+                    <span>正在生成...</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2.5 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 定价卡片 */}
@@ -138,11 +204,16 @@ export default function Home() {
             
             <div className="min-h-[400px] p-4 bg-gray-50 rounded-xl border border-gray-100">
               {loading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <div className="animate-spin text-4xl mb-4">⏳</div>
-                    <p className="text-gray-500">AI 正在创作中...</p>
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div className="text-4xl mb-4">✍️</div>
+                  <p className="text-gray-500 mb-2">AI 正在创作中...</p>
+                  <div className="w-48 bg-gray-200 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-indigo-600 h-2 rounded-full transition-all"
+                      style={{ width: `${progress}%` }}
+                    ></div>
                   </div>
+                  <p className="text-indigo-600 text-sm mt-2">{progress}%</p>
                 </div>
               ) : content ? (
                 <div className="prose prose-indigo max-w-none whitespace-pre-wrap">
