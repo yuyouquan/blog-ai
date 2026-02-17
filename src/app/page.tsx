@@ -367,11 +367,6 @@ export default function Home() {
       <footer className="bg-gray-50 py-8 mt-12">
         <div className="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
           <p>© 2026 BlogAI - AI 博客写作助手</p>
-          <p className="mt-2">
-            <a href="https://github.com/yuyouquan/blog-ai" className="text-indigo-600 hover:underline">
-              GitHub
-            </a>
-          </p>
         </div>
       </footer>
     </div>

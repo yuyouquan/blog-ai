@@ -47,9 +47,6 @@ export default function About() {
             <p className="text-gray-600">
               网站：<a href="https://blog-ai-sage.vercel.app" className="text-indigo-600 hover:underline">blog-ai-sage.vercel.app</a>
             </p>
-            <p className="text-gray-600">
-              GitHub：<a href="https://github.com/yuyouquan/blog-ai" className="text-indigo-600 hover:underline">github.com/yuyouquan/blog-ai</a>
-            </p>
           </section>
 
           <section>
