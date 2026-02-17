@@ -13,6 +13,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [displayProgress, setDisplayProgress] = useState(0);
   const [remaining, setRemaining] = useState(5);
+  const [isPro, setIsPro] = useState(false);
 
   // Check usage on mount
   useEffect(() => {
@@ -21,7 +22,8 @@ export default function Home() {
       try {
         const res = await fetch(`/api/usage?identifier=${encodeURIComponent(identifier)}`);
         const data = await res.json();
-        setRemaining(data.remaining || 0);
+        setRemaining(data.remaining === 'unlimited' ? 999 : (data.remaining || 0));
+        setIsPro(data.isPro || false);
       } catch (e) {
         console.error('Failed to check usage:', e);
       }
@@ -36,6 +38,25 @@ export default function Home() {
     if (!session && remaining <= 0) {
       alert('今日免费次数已用完！请登录或明天再来');
       return;
+    }
+
+    // Check with API for usage tracking
+    if (session?.user?.email) {
+      try {
+        const checkRes = await fetch('/api/usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: session.user.email }),
+        });
+        const checkData = await checkRes.json();
+        
+        if (!checkData.allowed) {
+          alert(checkData.message || '次数已用完');
+          return;
+        }
+      } catch (e) {
+        console.error('Usage check failed:', e);
+      }
     }
 
     setLoading(true);
@@ -99,7 +120,8 @@ export default function Home() {
                 // Refresh remaining count
                 const res2 = await fetch(`/api/usage?identifier=${encodeURIComponent(identifier)}`);
                 const data2 = await res2.json();
-                setRemaining(data2.remaining || 0);
+                setRemaining(data2.remaining === 'unlimited' ? 999 : (data2.remaining || 0));
+                setIsPro(data2.isPro || false);
               }
             } catch (e) {
               // Skip invalid JSON
@@ -130,6 +152,11 @@ export default function Home() {
             {!session && remaining > 0 && (
               <span className="text-xs bg-green-100 text-green-700 rounded-full px-3 py-1">
                 今日剩余 {remaining} 次
+              </span>
+            )}
+            {isPro && (
+              <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full px-3 py-1 font-medium">
+                💎 Pro
               </span>
             )}
             {session ? (

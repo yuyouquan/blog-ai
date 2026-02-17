@@ -12,6 +12,7 @@
     "@ai-sdk/openai": "^3.0.29",
     "@stripe/stripe-js": "^8.7.0",
     "@tailwindcss/typography": "^0.5.19",
+    "@upstash/redis": "^1.36.2",
     "ai": "^6.0.86",
     "bcryptjs": "^3.0.3",
     "minimax": "^0.1.1",
