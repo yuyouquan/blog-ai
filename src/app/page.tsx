@@ -8,12 +8,12 @@ export default function Home() {
   const [language, setLanguage] = useState('zh');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [displayProgress, setDisplayProgress] = useState(0);
 
   const generate = async () => {
     if (!topic.trim()) return;
     setLoading(true);
-    setProgress(0);
+    setDisplayProgress(0);
     setContent('');
 
     try {
@@ -53,7 +53,7 @@ export default function Home() {
               const data = JSON.parse(line.slice(6));
               
               if (data.progress !== undefined) {
-                setProgress(data.progress);
+                setDisplayProgress(prev => Math.max(prev, data.progress));
               }
               
               if (data.content) {
@@ -61,7 +61,7 @@ export default function Home() {
               }
               
               if (data.done) {
-                setProgress(100);
+                setDisplayProgress(100);
                 setLoading(false);
               }
             } catch (e) {
@@ -136,7 +136,7 @@ export default function Home() {
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
-                      ��🇨 中文
+                      🇨🇳 中文
                     </button>
                     <button
                       onClick={() => setLanguage('en')}
@@ -157,7 +157,7 @@ export default function Home() {
                 disabled={loading || !topic.trim()}
                 className="w-full mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                {loading ? `🤔 AI 写作中 ${progress}%` : '🚀 生成博客文章'}
+                {loading ? `🤔 AI 写作中 ${displayProgress}%` : '🚀 生成博客文章'}
               </button>
 
               {/* 进度条 */}
@@ -165,12 +165,12 @@ export default function Home() {
                 <div className="mt-4">
                   <div className="flex justify-between text-sm text-gray-500 mb-1">
                     <span>正在生成...</span>
-                    <span>{progress}%</span>
+                    <span>{displayProgress}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
                     <div 
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2.5 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2.5 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${displayProgress}%` }}
                     ></div>
                   </div>
                 </div>
@@ -209,11 +209,11 @@ export default function Home() {
                   <p className="text-gray-500 mb-2">AI 正在创作中...</p>
                   <div className="w-48 bg-gray-200 rounded-full h-2 mt-2">
                     <div 
-                      className="bg-indigo-600 h-2 rounded-full transition-all"
-                      style={{ width: `${progress}%` }}
+                      className="bg-indigo-600 h-2 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${displayProgress}%` }}
                     ></div>
                   </div>
-                  <p className="text-indigo-600 text-sm mt-2">{progress}%</p>
+                  <p className="text-indigo-600 text-sm mt-2">{displayProgress}%</p>
                 </div>
               ) : content ? (
                 <div className="prose prose-indigo max-w-none whitespace-pre-wrap">
