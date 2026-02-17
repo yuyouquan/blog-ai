@@ -11,9 +11,33 @@ export default function Home() {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [displayProgress, setDisplayProgress] = useState(0);
+  const [remaining, setRemaining] = useState(5);
+  const [isPro, setIsPro] = useState(false);
+
+  // Check usage on mount
+  useEffect(() => {
+    const checkUsage = async () => {
+      const identifier = session?.user?.email || 'anonymous';
+      try {
+        const res = await fetch(`/api/usage?identifier=${encodeURIComponent(identifier)}`);
+        const data = await res.json();
+        setRemaining(data.remaining || 0);
+      } catch (e) {
+        console.error('Failed to check usage:', e);
+      }
+    };
+    checkUsage();
+  }, [session]);
 
   const generate = async () => {
     if (!topic.trim()) return;
+    
+    // Check usage for non-logged in users
+    if (!session && remaining <= 0) {
+      alert('今日免费次数已用完！请登录或明天再来');
+      return;
+    }
+
     setLoading(true);
     setDisplayProgress(0);
     setContent('');
@@ -65,6 +89,17 @@ export default function Home() {
               if (data.done) {
                 setDisplayProgress(100);
                 setLoading(false);
+                // Track usage
+                const identifier = session?.user?.email || 'anonymous';
+                await fetch('/api/usage', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ identifier }),
+                });
+                // Refresh remaining count
+                const res = await fetch(`/api/usage?identifier=${encodeURIComponent(identifier)}`);
+                const data2 = await res.json();
+                setRemaining(data2.remaining || 0);
               }
             } catch (e) {
               // Skip invalid JSON
@@ -91,6 +126,11 @@ export default function Home() {
             ✍️ BlogAI
           </h1>
           <div className="flex items-center gap-4">
+            {!session && remaining > 0 && (
+              <span className="text-xs bg-green-100 text-green-700-1 rounded-full px-2 py">
+                今日剩余 {remaining} 次
+              </span>
+            )}
             {session ? (
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600">{session.user?.email}</span>
@@ -203,7 +243,27 @@ export default function Home() {
               <h3 className="text-lg font-semibold mb-2">💎 Pro 会员</h3>
               <p className="text-indigo-100 text-sm mb-4">无限次数生成，支持更多功能</p>
               <div className="text-3xl font-bold mb-4">$9<span className="text-lg font-normal">/月</span></div>
-              <button className="w-full bg-white text-indigo-600 py-2 rounded-lg font-medium hover:bg-indigo-50 transition">
+              <button 
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/stripe/checkout', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        priceId: 'price_pro_monthly',
+                        email: session?.user?.email 
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.url) {
+                      window.location.href = data.url;
+                    }
+                  } catch (e) {
+                    alert('支付加载失败，请重试');
+                  }
+                }}
+                className="w-full bg-white text-indigo-600 py-2 rounded-lg font-medium hover:bg-indigo-50 transition"
+              >
                 立即升级
               </button>
             </div>
