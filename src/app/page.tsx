@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 export default function Home() {
+  const { data: session, status } = useSession();
   const [topic, setTopic] = useState('');
   const [style, setStyle] = useState('balanced');
   const [language, setLanguage] = useState('zh');
@@ -88,7 +90,26 @@ export default function Home() {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             ✍️ BlogAI
           </h1>
-          <span className="text-sm text-gray-500">AI 博客写作助手</span>
+          <div className="flex items-center gap-4">
+            {session ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600">{session.user?.email}</span>
+                <button
+                  onClick={() => signOut()}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  退出
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => signIn()}
+                className="text-sm text-indigo-600 hover:text-indigo-800"
+              >
+                登录
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
