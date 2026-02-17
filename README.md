@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BlogAI - AI 博客写作助手
 
-## Getting Started
+> 使用 AI 在几秒钟内生成优质的博客文章
 
-First, run the development server:
+[![Deploy with Vercel](https://vercel.com/button)](https://blog-ai-sage.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 特性
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- 🤖 **AI 驱动** - 使用先进的 AI 模型生成高质量内容
+- ⚡ **快速生成** - 几秒钟内完成文章创作
+- 🎨 **多风格支持** - 专业、平衡、轻松三种风格
+- 🌐 **多语言** - 支持中文和英文
+- 📱 **响应式设计** - 支持手机和电脑访问
+- 🔐 **用户系统** - 注册登录保存历史
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 使用方法
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. 访问 https://blog-ai-sage.vercel.app
+2. 输入文章主题
+3. 选择写作风格和语言
+4. 点击生成按钮
+5. 复制生成的博客文章
 
-## Learn More
+## 定价
 
-To learn more about Next.js, take a look at the following resources:
+- **免费版**: 5 次/天
+- **Pro 版**: $9/月，无限次数（开发中）
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 技术栈
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Next.js 16
+- Tailwind CSS
+- MiniMax AI
+- NextAuth.js
+- Vercel
 
-## Deploy on Vercel
+## 许可证
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
