@@ -147,6 +147,9 @@ export default function Home() {
     { id: 'zhihu', name: '知乎', icon: '🟢', url: 'https://www.zhihu.com/publish' },
     { id: 'juejin', name: '掘金', icon: '🟠', url: 'https://juejin.cn/editor' },
     { id: 'segmentfault', name: 'SegmentFault', icon: '🔶', url: 'https://segmentfault.com/write' },
+    { id: 'xiaohongshu', name: '小红书', icon: '🔴', url: 'https://creator.xiaohongshu.com/creator/post' },
+    { id: 'facebook', name: 'Facebook', icon: '📘', url: 'https://www.facebook.com/' },
+    { id: 'x', name: 'X (Twitter)', icon: '🐦', url: 'https://twitter.com/compose/post' },
   ];
 
   const publishToPlatform = (platformId: string) => {
@@ -163,8 +166,8 @@ export default function Home() {
       publishUrl += `?title=${encodedTitle}&content=${encodedContent}`;
     } else if (platformId === 'medium') {
       publishUrl += `?title=${encodedTitle}`;
-    } else if (platformId === 'zhihu') {
-      alert('知乎需要登录后手动复制内容发布');
+    } else if (platformId === 'zhihu' || platformId === 'xiaohongshu' || platformId === 'facebook' || platformId === 'x') {
+      alert('请先登录后手动复制内容发布');
       return;
     }
 
